@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    katenary.v3/compose-hash: 02957997c43d550dc2189d830877b3934db1507a
+    katenary.v3/version: release-3.0.0-rc2
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
+    katenary.v3/component: emqx
+  name: '{{ include "deploy.fullname" . }}-emqx'
+spec:
+  ports:
+  - name: mqtt
+    port: 1883
+    protocol: TCP
+    targetPort: 1883
+  - name: mqtts
+    port: 8883
+    protocol: TCP
+    targetPort: 8883
+  - name: ws
+    port: 8083
+    protocol: TCP
+    targetPort: 8083
+  - name: wss
+    port: 8084
+    protocol: TCP
+    targetPort: 8084
+  - name: tproxy
+    port: 8081
+    protocol: TCP
+    targetPort: tproxy
+  - name: dashboard
+    port: 18083
+    protocol: TCP
+    targetPort: 18083
+  - name: stomp
+    port: 61613
+    protocol: TCP
+    targetPort: 61613
+  selector:
+    {{- include "deploy.selectorLabels" . | nindent 4 }}
+    katenary.v3/component: emqx

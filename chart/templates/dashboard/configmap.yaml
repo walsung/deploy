@@ -1,0 +1,16 @@
+apiVersion: v1
+data:
+  AUTH_SYSTEM_ENABLED: "False"
+  BACKEND_API_HOST: backend-api
+  BACKEND_API_PASSWORD: admin
+  BACKEND_API_PORT: "8000"
+  BACKEND_API_USERNAME: admin
+kind: ConfigMap
+metadata:
+  annotations:
+    katenary.v3/compose-hash: 02957997c43d550dc2189d830877b3934db1507a
+    katenary.v3/version: release-3.0.0-rc2
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
+    katenary.v3/component: dashboard
+  name: '{{ include "deploy.fullname" . }}-dashboard'

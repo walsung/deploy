@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    katenary.v3/compose-hash: 02957997c43d550dc2189d830877b3934db1507a
+    katenary.v3/version: release-3.0.0-rc2
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
+    katenary.v3/component: emqx
+  name: '{{ include "deploy.fullname" . }}-emqx'
+spec:
+  replicas: {{ .Values.emqx.replicas }}
+  selector:
+    matchLabels:
+      {{- include "deploy.selectorLabels" . | nindent 6 }}
+      katenary.v3/component: emqx
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        {{- include "deploy.selectorLabels" . | nindent 8 }}
+        katenary.v3/component: emqx
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: '{{ include "deploy.fullname" . }}-emqx'
+        image: '{{ tpl .Values.emqx.repository.image $ }}:{{ tpl .Values.emqx.repository.tag $ | default "latest" }}'
+        imagePullPolicy: {{ .Values.emqx.imagePullPolicy }}
+        livenessProbe:
+          exec:
+            command:
+            - /opt/emqx/bin/emqx_ctl
+            - status
+          periodSeconds: 5
+        name: emqx
+        ports:
+        - containerPort: 1883
+          name: port-1883
+        - containerPort: 8883
+          name: port-8883
+        - containerPort: 8083
+          name: port-8083
+        - containerPort: 8084
+          name: port-8084
+        - containerPort: 8081
+          name: tproxy
+        - containerPort: 18083
+          name: port-18083
+        - containerPort: 61613
+          name: port-61613
+        {{- if .Values.emqx.resources }}
+        resources:
+          {{ .Values.emqx.resources | toYaml | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        {{- if .Values.emqx.persistence.emqx_data.enabled }}
+        - mountPath: /opt/emqx/data
+          name: emqx-data
+        {{- end }}
+        {{- if .Values.emqx.persistence.emqx_log.enabled }}
+        - mountPath: /opt/emqx/log
+          name: emqx-log
+        {{- end }}
+        {{- if .Values.emqx.persistence.emqx_etc.enabled }}
+        - mountPath: /opt/emqx/etc
+          name: emqx-etc
+        {{- end }}
+      {{- if .Values.pullSecrets }}
+      imagePullSecrets:
+      {{- .Values.pullSecrets | toYaml | nindent 6 }}
+      {{- end }}
+      {{- if .Values.emqx.nodeSelector }}
+      nodeSelector:
+        {{- .Values.emqx.nodeSelector | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if ne .Values.emqx.serviceAccount "" }}
+      serviceAccountName: {{ .Values.emqx.serviceAccount | quote }}
+      {{- end }}
+      volumes:
+      {{- if .Values.emqx.persistence.emqx_data.enabled }}
+      - name: emqx-data
+        persistentVolumeClaim:
+          claimName: '{{ include "deploy.fullname" . }}-emqx-emqx-data'
+      {{- end }}
+      {{- if .Values.emqx.persistence.emqx_log.enabled }}
+      - name: emqx-log
+        persistentVolumeClaim:
+          claimName: '{{ include "deploy.fullname" . }}-emqx-emqx-log'
+      {{- end }}
+      {{- if .Values.emqx.persistence.emqx_etc.enabled }}
+      - name: emqx-etc
+        persistentVolumeClaim:
+          claimName: '{{ include "deploy.fullname" . }}-emqx-emqx-etc'
+      {{- end }}

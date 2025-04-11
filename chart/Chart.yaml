@@ -1,0 +1,18 @@
+# This is the main values.yaml file for the deploy chart.
+# More information can be found in the chart's README.md file.
+#
+# generated at: 2025-04-11T03:52:50Z
+# compose files: docker-compose.yml
+# compose hash (sha1): 02957997c43d550dc2189d830877b3934db1507a
+
+# Name of the chart (required), basically the name of the project.
+name: deploy
+apiVersion: v2
+
+# Version of the chart (required)
+version: 0.1.0
+
+# Version of the application (required).
+# This should be the main application version.
+appVersion: 0.1.0
+description: A Helm chart for deploy

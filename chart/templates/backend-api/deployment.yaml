@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    katenary.v3/compose-hash: 02957997c43d550dc2189d830877b3934db1507a
+    katenary.v3/version: release-3.0.0-rc2
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
+    katenary.v3/component: backend-api
+  name: '{{ include "deploy.fullname" . }}-backend-api'
+spec:
+  {{- $backendApi := index .Values "backend-api" }}
+  replicas: {{ $backendApi.replicas }}
+  selector:
+    matchLabels:
+      {{- include "deploy.selectorLabels" . | nindent 6 }}
+      katenary.v3/component: backend-api
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        {{- include "deploy.selectorLabels" . | nindent 8 }}
+        katenary.v3/component: backend-api
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: '{{ include "deploy.fullname" . }}-backend-api'
+        image: '{{ tpl $backendApi.repository.image $ }}:{{ tpl $backendApi.repository.tag $ | default "latest" }}'
+        imagePullPolicy: {{ $backendApi.imagePullPolicy }}
+        name: backend-api
+        ports:
+        - containerPort: 8000
+          name: port-8000
+        {{- if $backendApi.resources }}
+        resources:
+          {{ $backendApi.resources | toYaml | nindent 10 }}
+        {{- end }}
+      {{- if .Values.pullSecrets }}
+      imagePullSecrets:
+      {{- .Values.pullSecrets | toYaml | nindent 6 }}
+      {{- end }}
+      {{- if $backendApi.nodeSelector }}
+      nodeSelector:
+        {{- $backendApi.nodeSelector | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if ne ($backendApi.serviceAccount | toString) "" }}
+      serviceAccountName: {{ $backendApi.serviceAccount | quote }}
+      {{- end }}
